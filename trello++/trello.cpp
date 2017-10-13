@@ -3,6 +3,9 @@
 
 #include "stdafx.h"
 #include <iostream>
+#include <vector>
+#include <memory>
+#include "ListBoardsCommand.h"
 
 using namespace std;
 
@@ -13,7 +16,16 @@ void println(T t) {
 
 int main()
 {
-	println("hello world!");
+	vector< shared_ptr<AbstractCommand> > commands;
+	commands.push_back(make_shared<ListBoardsCommand>());
+
+	string input = "list boards";
+	for (auto & cmd : commands) {
+		if (cmd->IsMatch(input)) {
+			(*cmd)();
+		}
+	}
+
     return 0;
 }
 
