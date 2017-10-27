@@ -1,9 +1,16 @@
 #pragma once
 
-#include "AbstractCommand.h"
 #include <iostream>
 #include <curl/curl.h>
+
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+
+#include "AbstractCommand.h"
 #include "Config.h"
+
+using namespace rapidjson;
 
 using namespace std;
 
@@ -45,7 +52,15 @@ public:
 			}
 			else
 			{
-				fprintf(stdout, "curl integration ok!\n");
+				Document d;
+				d.Parse(response.c_str());
+
+				if (!d.HasParseError()) {
+					for (auto & listVal : d.GetArray())
+					{
+						fprintf(stdout, " - %s\n", listVal.GetObjectW()["name"].GetString());
+					}
+				}
 			}
 
 			/* always cleanup */
