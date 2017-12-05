@@ -7,7 +7,10 @@
 #include <memory>
 #include "ListBoardsCommand.h"
 
-using namespace std;
+using std::cout;
+using std::vector;
+using std::shared_ptr;
+using std::make_shared;
 
 template <typename T>
 void println(T t) {

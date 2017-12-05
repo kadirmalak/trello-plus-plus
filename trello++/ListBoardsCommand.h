@@ -6,7 +6,8 @@
 #include "Config.h"
 #include "TrelloApi.h"
 
-using namespace std;
+using std::cout;
+using std::endl;
 
 class ListBoardsCommand : public AbstractCommand {
 public:

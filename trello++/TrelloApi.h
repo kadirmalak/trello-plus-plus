@@ -6,8 +6,8 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
-using namespace rapidjson;
-using namespace std;
+using std::string;
+using rapidjson::Document;
 
 // TODO: don't use global variable here
 string response;

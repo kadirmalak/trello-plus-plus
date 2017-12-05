@@ -2,7 +2,10 @@
 #include <string>
 #include <regex>
 
-using namespace std;
+using std::string;
+using std::regex_search;
+using std::smatch;
+using std::regex;
 
 class AbstractCommand {
 public:
