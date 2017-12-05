@@ -9,37 +9,42 @@
 using std::string;
 using rapidjson::Document;
 
-// TODO: don't use global variable here
-string response;
-
-// TODO: don't use global function here
-size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
-{
-	size_t len = size * nmemb;
-	response.append(ptr, len);
-	return len;
-}
-
 class TrelloApi {
 public:
+	// static callback for curl
+	static size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
+	{
+		auto _this = static_cast<TrelloApi*>(userdata);
+		return _this->WriteCallback(ptr, size, nmemb);
+	}
+
 	TrelloApi(const string & apiBase, const string & key, const string & token) 
 		: _apiBase{ apiBase }, _key{ key }, _token{ token } {
+		
 		curl_global_init(CURL_GLOBAL_DEFAULT);
-		curl = curl_easy_init();
-		if (curl) {
-			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+		_curl = curl_easy_init();
+		if (_curl) {
+			curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, TrelloApi::write_callback);
+			curl_easy_setopt(_curl, CURLOPT_WRITEDATA, this); // we're passing this as *userdata
 		}
 	}
 
 	~TrelloApi() {
-		if (curl) {
-			curl_easy_cleanup(curl);
+		if (_curl) {
+			curl_easy_cleanup(_curl);
 		}
 		curl_global_cleanup();
 	}
 
+	size_t WriteCallback(char *ptr, size_t size, size_t nmemb)
+	{
+		size_t len = size * nmemb;
+		_response.append(ptr, len);
+		return len;
+	}
+
 	void ListBoards() {
-		if (!curl) {
+		if (!_curl) {
 			fprintf(stderr, "curl is not ready\n");
 			return;
 		}
@@ -47,17 +52,17 @@ public:
 		//response.clear();
 		// TODO: clear response buffer here
 		string url = _apiBase + "/members/me/boards?key=" + _key + "&token=" + _token;
-		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-		res = curl_easy_perform(curl);
+		curl_easy_setopt(_curl, CURLOPT_URL, url.c_str());
+		_res = curl_easy_perform(_curl);
 		/* Check for errors */
-		if (res != CURLE_OK)
+		if (_res != CURLE_OK)
 		{
-			fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+			fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(_res));
 			return;
 		}
 		
 		Document d;
-		d.Parse(response.c_str());
+		d.Parse(_response.c_str());
 
 		if (d.HasParseError()) {
 			fprintf(stderr, "could not parse response\n");
@@ -73,6 +78,7 @@ private:
 	string _apiBase;
 	string _key;
 	string _token;
-	CURL *curl;
-	CURLcode res;
+	string _response;
+	CURL *_curl;
+	CURLcode _res;
 };
